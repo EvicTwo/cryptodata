@@ -71,7 +71,7 @@ export class AppService {
       tsyms
     })
 
-    const resp = await this.httpService.get(`/data/pricemultifull?${query}`).toPromise().catch(async err => {
+    const resp = await this.httpService.get(`/data/pricemultifull?${query}`).toPromise().catch(err => {
       // Request failed for whatever reason.
       console.info(`Bad response from API. ${err}`)
 
