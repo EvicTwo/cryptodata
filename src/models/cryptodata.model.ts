@@ -12,11 +12,11 @@ class CryptoData extends Model {
 
   @AllowNull(false)
   @Column(DataType.JSON)
-  RAW: string
+  RAW: object
 
   @AllowNull(false)
   @Column(DataType.JSON)
-  DISPLAY: string
+  DISPLAY: object
 
   @AllowNull(false)
   @Column

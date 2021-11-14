@@ -56,6 +56,7 @@ export class AppService {
    * Makes a request to Crypto API and trasnforms response on success.
    * If data from MySQL is not needed for fallback - provide { fromDb: false }
    * 
+   * @param {{ fsym?: string, tsym?: string, fromDb?: boolean }}
    * @returns Promise<ICryptoDbData | ICryptoDbData[] | null>
    * @memberof AppService
    */
@@ -88,7 +89,11 @@ export class AppService {
         // TODO: cant do it with array yet..
         if (Array.isArray(fsyms) || Array.isArray(tsyms)) throw new Error(`Requested a fsyms array from MySQL. Not implemented.`)
 
-        return await this.findCrypto(fsyms, tsyms)
+        // retrieve data
+        const fromMySQL = await this.findCrypto(fsyms, tsyms)
+
+        // format and return
+        return fromMySQL ? this.formatForOutput([fromMySQL]) : null
 
       } else {
         // Do nothing?
@@ -102,7 +107,8 @@ export class AppService {
     // update data in redis
     cryptoData.forEach(crypto => this.redisStorage.storeInRedis(crypto))
 
-    return cryptoData
+    // format and return
+    return this.formatForOutput(cryptoData)
   }
 
   /**
@@ -184,5 +190,33 @@ export class AppService {
       order: [['createdAt', 'DESC']],
       raw: true
     })
+  }
+
+
+  /**
+   * Formats ICryptoDbData[] for output
+   * 
+   * @memberof AppService
+   */
+  formatForOutput(cryptoData: ICryptoDbData[]) {
+    const properFormat = cryptoData.map(crypto => {
+
+      if (!crypto.RAW || !crypto.DISPLAY) throw new Error(`Can't format that`)
+
+      return {
+        RAW: {
+          [crypto.fsym]: {
+            [crypto.tsym]: crypto.RAW
+          }
+        },
+        DISPLAY: {
+          [crypto.fsym]: {
+            [crypto.tsym]: crypto.DISPLAY
+          }
+        }
+      }
+    })
+
+    return properFormat
   }
 }
